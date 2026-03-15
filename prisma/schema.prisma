@@ -44,7 +44,6 @@ model User {
 model Department {
   id         Int         @id @default(autoincrement())
   name       String
-  complaints Complaint[]
   users      User[]
 }
 
@@ -53,16 +52,15 @@ model Complaint {
   title        String
   description  String
 
-  status       ComplaintStatus @default(OPEN)
+  status         ComplaintStatus @default(OPEN)
 
-  departmentId Int?
-  userId       Int
-  createdAt    DateTime @default(now())
+  departmentName String?
+  userId         Int
+  createdAt      DateTime @default(now())
 
-  statuses     StatusHistory[]
+  statuses       StatusHistory[]
 
-  user         User       @relation(fields: [userId], references: [id])
-  department   Department? @relation(fields: [departmentId], references: [id])
+  user           User       @relation(fields: [userId], references: [id])
 }
 
 model StatusHistory {

@@ -6,9 +6,9 @@ new Worker(
   "complaint-classification",
   async (job) => {
 
-    const { complaintId, text } = job.data
+    const { complaintId, title, description } = job.data
 
-    await processComplaint(complaintId, text)
+    await processComplaint(complaintId, title, description)
 
   },
   { connection: getRedisConnection() as any }

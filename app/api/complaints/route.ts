@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { getComplaintQueue } from "@/lib/queue/complaintQueue"
-import { processComplaint } from "@/lib/services/complaintProcessor"
-import { Console } from "console"
+import { predictDepartment } from "@/lib/fuzzyClassifier"
+import { getServerSession } from "next-auth"
+import { authOptions } from "../auth/[...nextauth]/route"
 
 export async function GET() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
 
   const complaints = await prisma.complaint.findMany({
-    include: {
-      department: true
+    where: {
+      userId: Number(session.user.id)
     },
     orderBy: {
       createdAt: "desc"
@@ -22,43 +27,20 @@ export async function POST(req: Request) {
   console.log("Received complaint submission")
   const body = await req.json()
 
+  // Predict the department before creating the record
+  const predictedDepartment = predictDepartment(body.title, body.description)
+
   const complaint = await prisma.complaint.create({
-  data: {
-    title: body.title,
-    description: body.description,
-    status: "OPEN",
-    user: {
-      connect: { id: body.userId }
+    data: {
+      title: body.title,
+      description: body.description,
+      status: "OPEN",
+      departmentName: predictedDepartment,
+      user: {
+        connect: { id: Number(body.userId) }
+      }
     }
-  }
-})
-
-  const text = body.title + " " + body.description
-
-  const config = await prisma.systemConfig.findFirst()
-
-  if (config?.useQueue) {
-
-    try {
-
-      await getComplaintQueue().add("predict-department", {
-        complaintId: complaint.id,
-        text
-      })
-
-    } catch (err) {
-
-      console.log("Redis queue failed, fallback to direct processing")
-
-      await processComplaint(complaint.id, text)
-
-    }
-
-  } else {
-
-    await processComplaint(complaint.id, text)
-
-  }
+  })
 
   return NextResponse.json(complaint)
 }

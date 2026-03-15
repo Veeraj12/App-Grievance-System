@@ -4,9 +4,7 @@ import { NextResponse } from "next/server"
 export async function GET() {
 
   const complaints = await prisma.complaint.findMany({
-    include:{
-      department:true
-    },
+
     where:{
       status:{
         in:["ASSIGNED","IN_PROGRESS"]

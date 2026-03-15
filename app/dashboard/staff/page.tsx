@@ -10,5 +10,5 @@ export default async function StaffPage() {
     return <div>Access Denied</div>;
   }
 
-  return <StaffDashboard data={[]} />;
+  return <StaffDashboard />;
 }

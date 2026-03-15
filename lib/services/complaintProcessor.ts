@@ -1,22 +1,16 @@
 import { prisma } from "../prisma"
 import { predictDepartment } from "../fuzzyClassifier"
 
-export async function processComplaint(complaintId: number, text: string) {
+export async function processComplaint(complaintId: number, subject: string, description: string) {
 
-  const deptName = predictDepartment(text)
+  const deptName = predictDepartment(subject, description)
 
   if (!deptName) return
-
-  const department = await prisma.department.findFirst({
-    where: { name: deptName }
-  })
-
-  if (!department) return
 
   await prisma.complaint.update({
     where: { id: complaintId },
     data: {
-      departmentId: department.id,
+      departmentName: deptName,
       status: "ASSIGNED"
     }
   })
