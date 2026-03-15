@@ -1,0 +1,21 @@
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
+
+export async function GET() {
+
+  const complaints = await prisma.complaint.findMany({
+    include:{
+      department:true
+    },
+    where:{
+      status:{
+        in:["ASSIGNED","IN_PROGRESS"]
+      }
+    },
+    orderBy:{
+      createdAt:"desc"
+    }
+  })
+
+  return NextResponse.json(complaints)
+}

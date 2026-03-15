@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum ComplaintStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum Role {
+  USER
+  ADMIN
+  STAFF
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(USER)
+
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  complaints   Complaint[]
+}
+
+model Department {
+  id         Int         @id @default(autoincrement())
+  name       String
+  complaints Complaint[]
+  users      User[]
+}
+
+model Complaint {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+
+  status       ComplaintStatus @default(OPEN)
+
+  departmentId Int?
+  userId       Int
+  createdAt    DateTime @default(now())
+
+  statuses     StatusHistory[]
+
+  user         User       @relation(fields: [userId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+}
+
+model StatusHistory {
+  id          Int      @id @default(autoincrement())
+  status      ComplaintStatus
+  createdAt   DateTime @default(now())
+
+  complaintId Int
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+}
+
+model SystemConfig {
+  id       Int     @id @default(1)
+  useQueue Boolean @default(false)
+}
