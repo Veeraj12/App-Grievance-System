@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
         password: {}
       },
 
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials) {
           console.error("No credentials provided");
           throw new Error("Credentials are required");
