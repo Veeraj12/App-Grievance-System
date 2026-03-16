@@ -32,7 +32,7 @@ export async function GET() {
       mode: "insensitive"
     },
     status: {
-      in: ["ASSIGNED", "IN_PROGRESS"]
+      in: ["OPEN","ASSIGNED", "IN_PROGRESS"]
     }
   },
   orderBy: {

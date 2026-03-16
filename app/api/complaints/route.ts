@@ -2,11 +2,27 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getComplaintQueue } from "@/lib/queue/complaintQueue"
 import { processComplaint } from "@/lib/services/complaintProcessor"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
 export async function GET() {
+
+  const session = await getServerSession(authOptions)
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const userId = Number(session.user.id)
+
   try {
 
     const complaints = await prisma.complaint.findMany({
+
+      where: {
+        userId: userId
+      },
+
       include: {
         user: {
           select: {
@@ -17,9 +33,11 @@ export async function GET() {
         },
         statuses: true
       },
+
       orderBy: {
         createdAt: "desc"
       }
+
     })
 
     return NextResponse.json(complaints)
@@ -34,8 +52,8 @@ export async function GET() {
     )
 
   }
-}
 
+}
 
 export async function POST(req: Request) {
 
