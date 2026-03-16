@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, LogOut, ShieldCheck, ClipboardList, User as UserIcon } from "lucide-react";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -52,10 +53,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <span className="text-xs text-slate-400">{userRole}</span>
             </div>
           </div>
-          <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-red-500/10 text-red-400 transition">
-            <LogOut size={20} />
-            <span>Logout</span>
-          </button>
+          <LogoutButton />
         </div>
       </aside>
 

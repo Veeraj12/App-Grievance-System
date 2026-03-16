@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       description: body.description,
       status: "OPEN",
       departmentName: predictedDepartment,
+      imageUrl: body.imageUrl ?? null,
       user: {
         connect: { id: Number(body.userId) }
       }

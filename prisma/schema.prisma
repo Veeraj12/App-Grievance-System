@@ -55,6 +55,7 @@ model Complaint {
   status         ComplaintStatus @default(OPEN)
 
   departmentName String?
+  imageUrl       String?
   userId         Int
   createdAt      DateTime @default(now())
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
-import { FileText, CheckCircle, Clock, PlusCircle, X, Send, ShieldCheck } from "lucide-react";
+import { FileText, CheckCircle, Clock, PlusCircle, X, Send, ShieldCheck, ImagePlus, Trash2 } from "lucide-react";
 
 export default function UserDashboard() {
   const { data: session } = useSession();
@@ -13,6 +13,25 @@ export default function UserDashboard() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setImageBase64(result);
+      setImagePreview(result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearImage() {
+    setImageBase64(null);
+    setImagePreview(null);
+  }
 
   async function loadComplaints() {
     const res = await fetch("/api/complaints");
@@ -35,12 +54,14 @@ export default function UserDashboard() {
       const res = await fetch("/api/complaints", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, userId: session.user.id }),
+        body: JSON.stringify({ title, description, userId: session.user.id, imageUrl: imageBase64 }),
       });
       if (!res.ok) throw new Error("Request failed");
       toast.success("Complaint submitted!");
       setTitle("");
       setDescription("");
+      setImageBase64(null);
+      setImagePreview(null);
       setShowForm(false);
       loadComplaints();
     } catch (err) {
@@ -167,6 +188,34 @@ export default function UserDashboard() {
                     required
                   />
                 </div>
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">Attach Image (optional)</label>
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img src={imagePreview} alt="Preview" className="w-full max-h-48 object-cover rounded-xl border border-white/10" />
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full text-white transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 border-dashed rounded-xl cursor-pointer transition text-slate-400 hover:text-slate-200">
+                      <ImagePlus className="w-5 h-5" />
+                      <span className="text-sm">Click to upload a photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                  )}
+                </div>
+
                 <div className="flex gap-3 pt-1">
                   <button
                     type="submit"
