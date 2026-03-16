@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -66,11 +66,10 @@ export default function AdminDashboardTabs({ users, performanceData }: any) {
           {/* Processing Mode Toggle */}
           <button
             onClick={toggleQueue}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-300 ${
-              queueEnabled
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all duration-300 ${queueEnabled
                 ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                 : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
-            }`}
+              }`}
           >
             <Cpu className="w-4 h-4" />
             {queueEnabled ? "Queue Mode On" : "Direct Mode"}
@@ -83,11 +82,10 @@ export default function AdminDashboardTabs({ users, performanceData }: any) {
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                activeTab === id
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === id
                   ? "bg-indigo-600 text-white shadow-[0_0_12px_rgba(79,70,229,0.4)]"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               {label}

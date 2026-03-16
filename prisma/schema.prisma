@@ -43,7 +43,7 @@ model User {
 
 model Department {
   id         Int         @id @default(autoincrement())
-  name       String
+  name       String     @unique
   users      User[]
 }
 
