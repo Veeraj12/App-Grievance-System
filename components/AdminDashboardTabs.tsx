@@ -1,12 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 export default function AdminDashboardTabs({ users, performanceData }: any) {
   const [activeTab, setActiveTab] = useState("users");
   const [queueEnabled, setQueueEnabled] = useState(false)
+  const [departments, setDepartments] = useState<any[]>([])
+
+  useEffect(() => {
+  fetch("/api/admin/departments")
+    .then(res => res.json())
+    .then(data => setDepartments(data))
+}, [])
+  
+  async function handleDepartmentChange(userId: number, departmentId: string) {
+
+  const res = await fetch("/api/admin/users/department", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId,
+      departmentId
+    })
+  });
+
+  if (res.ok) {
+    toast.success("Department assigned");
+    window.location.reload();
+  }
+}
 
   async function toggleQueue() {
 
@@ -101,7 +127,22 @@ export default function AdminDashboardTabs({ users, performanceData }: any) {
                   <tr key={user.id} className="hover:bg-slate-50 transition">
                     <td className="py-4 font-medium">{user.name}</td>
                     <td className="py-4">{user.email}</td>
-                    <td className="py-4">{user.departmentId || "N/A"}</td>
+                    <td className="py-4">
+                      <select
+                        value={user.departmentId || ""}
+                        onChange={(e) => handleDepartmentChange(user.id, e.target.value)}
+                        className="border p-1 rounded"
+                      >
+                        <option value="">None</option>
+
+                        {departments.map((d:any)=>(
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+
+                      </select>
+                    </td>
                     <td className="py-4">
                       <select
                         value={user.role}

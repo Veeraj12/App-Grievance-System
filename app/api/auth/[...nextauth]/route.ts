@@ -42,6 +42,10 @@ export const authOptions: NextAuthOptions = {
 
         console.log("User found, checking password...");
 
+        const bcrypt = require("bcrypt")
+
+        bcrypt.hash("123456", 10).then(console.log)
+
         const validPassword = await bcrypt.compare(
           credentials.password,
           user.password

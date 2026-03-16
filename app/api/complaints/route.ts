@@ -1,46 +1,113 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { predictDepartment } from "@/lib/fuzzyClassifier"
-import { getServerSession } from "next-auth"
-import { authOptions } from "../auth/[...nextauth]/route"
+import { getComplaintQueue } from "@/lib/queue/complaintQueue"
+import { processComplaint } from "@/lib/services/complaintProcessor"
 
 export async function GET() {
-  const session = await getServerSession(authOptions)
+  try {
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const complaints = await prisma.complaint.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        statuses: true
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    })
+
+    return NextResponse.json(complaints)
+
+  } catch (error) {
+
+    console.error("Error fetching complaints:", error)
+
+    return NextResponse.json(
+      { error: "Failed to fetch complaints" },
+      { status: 500 }
+    )
+
   }
-
-  const complaints = await prisma.complaint.findMany({
-    where: {
-      userId: Number(session.user.id)
-    },
-    orderBy: {
-      createdAt: "desc"
-    }
-  })
-
-  return NextResponse.json(complaints)
 }
 
+
 export async function POST(req: Request) {
-  console.log("Received complaint submission")
-  const body = await req.json()
 
-  // Predict the department before creating the record
-  const predictedDepartment = predictDepartment(body.title, body.description)
+  try {
 
-  const complaint = await prisma.complaint.create({
-    data: {
-      title: body.title,
-      description: body.description,
-      status: "OPEN",
-      departmentName: predictedDepartment,
-      user: {
-        connect: { id: Number(body.userId) }
-      }
+    const body = await req.json()
+
+    const { title, description, userId } = body
+
+    if (!title || !description || !userId) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      )
     }
-  })
 
-  return NextResponse.json(complaint)
+    const complaint = await prisma.complaint.create({
+      data: {
+        title,
+        description,
+        status: "OPEN",
+        user: {
+          connect: { id: Number(body.userId) }
+        }
+      }
+    })
+
+    const text = `${title} ${description}`
+
+    const config = await prisma.systemConfig.findFirst()
+
+    if (config?.useQueue) {
+
+      try {
+
+        await getComplaintQueue().add("predict-department", {
+          complaintId: complaint.id,
+          text
+        })
+
+      } catch (queueError) {
+
+        console.warn("Queue failed. Processing directly.", queueError)
+
+        await processComplaint(
+          complaint.id,
+          body.title,
+          body.description
+        )
+
+      }
+
+    } else {
+
+      await processComplaint(
+        complaint.id,
+        body.title,
+        body.description
+      )
+
+    }
+
+    return NextResponse.json(complaint)
+
+  } catch (error) {
+
+    console.error("Complaint creation failed:", error)
+
+    return NextResponse.json(
+      { error: "Failed to create complaint" },
+      { status: 500 }
+    )
+
+  }
 }
