@@ -1,18 +1,23 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Zap, Users, ChevronRight } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Users, ChevronRight, LayoutDashboard } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+import LogoutButton from "@/components/LogoutButton";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
   return (
     <div className="relative min-h-screen bg-[#030712] overflow-hidden text-slate-200 font-sans selection:bg-indigo-500/30">
       {/* Tech Background Elements */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse:60%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20"></div>
         <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[80%] md:w-[60%] h-[50rem] bg-indigo-500/20 blur-[120px] rounded-full pointer-events-none"></div>
       </div>
 
       {/* Navigation */}
       <nav className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 font-sans">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
@@ -20,19 +25,37 @@ export default function Home() {
             Smart Grievance System
           </span>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Link 
-            href="/login" 
-            className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors"
-          >
-            Log in
-          </Link>
-          <Link 
-            href="/register" 
-            className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.6)] flex items-center gap-2 border border-indigo-500/50"
-          >
-            Register <ChevronRight className="w-4 h-4" />
-          </Link>
+        <div className="flex items-center gap-2 sm:gap-6">
+          {!session ? (
+            <>
+              <Link 
+                href="/login" 
+                className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              >
+                Log in
+              </Link>
+              <Link 
+                href="/register" 
+                className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.6)] flex items-center gap-2 border border-indigo-500/50"
+              >
+                Register <ChevronRight className="w-4 h-4" />
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link 
+                href={`/dashboard/${session.user.role.toLowerCase()}`}
+                className="px-5 py-2.5 text-sm font-medium text-indigo-300 hover:text-white flex items-center gap-2 transition-colors bg-indigo-500/5 hover:bg-indigo-500/10 rounded-full border border-indigo-500/20"
+              >
+                <LayoutDashboard size={18} />
+                Dashboard
+              </Link>
+              <div className="w-px h-6 bg-white/10 hidden sm:block" />
+              <div className="flex items-center scale-90 origin-right">
+                <LogoutButton />
+              </div>
+            </>
+          )}
         </div>
       </nav>
 
@@ -58,12 +81,21 @@ export default function Home() {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-4 sm:px-0">
-          <Link 
-            href="/register" 
-            className="px-8 py-4 w-full sm:w-auto text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
-          >
-            Get Started <ArrowRight className="w-5 h-5" />
-          </Link>
+          {!session ? (
+            <Link 
+              href="/register" 
+              className="px-8 py-4 w-full sm:w-auto text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
+            >
+              Get Started <ArrowRight className="w-5 h-5" />
+            </Link>
+          ) : (
+            <Link 
+              href={`/dashboard/${session.user.role.toLowerCase()}`}
+              className="px-8 py-4 w-full sm:w-auto text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
+            >
+              Go to Dashboard <ArrowRight className="w-5 h-5" />
+            </Link>
+          )}
           <Link 
             href="#about" 
             className="px-8 py-4 w-full sm:w-auto text-base font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all flex items-center justify-center backdrop-blur-sm"

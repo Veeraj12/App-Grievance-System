@@ -54,16 +54,49 @@ export async function POST(req: Request) {
 
     const complaint = await prisma.complaint.create({
       data: {
-        title: body.title,
-        description: body.description,
+        title,
+        description,
         status: "OPEN",
-        departmentName: predictedDepartment,
-        imageUrl: body.imageUrl ?? null,
         user: {
           connect: { id: Number(body.userId) }
         }
       }
     })
+
+    const text = `${title} ${description}`
+
+    const config = await prisma.systemConfig.findFirst()
+
+    if (config?.useQueue) {
+
+      try {
+
+        await getComplaintQueue().add("predict-department", {
+          complaintId: complaint.id,
+          text
+        })
+
+      } catch (queueError) {
+
+        console.warn("Queue failed. Processing directly.", queueError)
+
+        await processComplaint(
+          complaint.id,
+          body.title,
+          body.description
+        )
+
+      }
+
+    } else {
+
+      await processComplaint(
+        complaint.id,
+        body.title,
+        body.description
+      )
+
+    }
 
     return NextResponse.json(complaint)
 
@@ -77,4 +110,4 @@ export async function POST(req: Request) {
     )
 
   }
-}
+} 
