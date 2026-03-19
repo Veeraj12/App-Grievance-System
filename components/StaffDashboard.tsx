@@ -60,6 +60,7 @@ export default function StaffDashboard() {
 
   useEffect(() => { loadTickets() }, [])
 
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null)
 
 
   async function updateStatus(id: number, status: string) {
@@ -73,7 +74,7 @@ export default function StaffDashboard() {
       if (!res.ok) throw new Error()
       toast.success("Status updated", { id: toastId })
       loadTickets()
-      
+
     } catch {
       toast.error("Failed to update", { id: toastId })
     }
@@ -82,27 +83,27 @@ export default function StaffDashboard() {
   const stats = [
     {
       label: "Assigned",
-      value: tickets.filter(t => t.status === "ASSIGNED").length,
+      value: tickets.filter(t => t.status === "ASSIGNED" && t.departmentName === session?.user.departmentName).length,
       icon: Clock,
       colorClass: "bg-blue-600",
       borderColor: "border-l-blue-500",
     },
     {
       label: "In Progress",
-      value: tickets.filter(t => t.status === "IN_PROGRESS").length,
+      value: tickets.filter(t => t.status === "IN_PROGRESS" && t.departmentName === session?.user.departmentName).length,
       icon: Activity,
       colorClass: "bg-amber-500",
       borderColor: "border-l-amber-500",
     },
     {
       label: "Resolved",
-      value: tickets.filter(t => t.status === "RESOLVED").length,
+      value: tickets.filter(t => t.status === "RESOLVED" && t.departmentName === session?.user.departmentName).length,
       icon: CheckCircle,
       colorClass: "bg-green-600",
       borderColor: "border-l-green-500",
     },
   ]
-  const ticketsTobeResolved = tickets.filter(t => t.status === "ASSIGNED" || t.status === "IN_PROGRESS" || t.status === "OPEN")
+  const ticketsTobeResolved = tickets.filter(t => (t.status === "ASSIGNED" || t.status === "IN_PROGRESS" || t.status === "OPEN") && t.departmentName === session?.user.departmentName)
 
   return (
     <div className="space-y-6">
@@ -146,7 +147,7 @@ export default function StaffDashboard() {
           <div className="flex items-center gap-2">
             <ClipboardList size={17} className="text-teal-400" />
             <h2 className="font-bold text-white">Assigned Complaints</h2>
-            {tickets.length > 0 && (
+            {ticketsTobeResolved.length > 0 && (
               <span className="ml-1 px-2 py-0.5 bg-white/10 text-slate-300 text-xs font-bold rounded-full">
                 {ticketsTobeResolved.length}
               </span>
@@ -172,7 +173,11 @@ export default function StaffDashboard() {
         ) : (
           <div className="divide-y divide-white/5">
             {ticketsTobeResolved.map((ticket) => (
-              <div key={ticket.id} className="p-5 hover:bg-white/[0.03] transition-colors group">
+              <div
+                key={ticket.id}
+                onClick={() => setSelectedTicket(ticket)}
+                className="p-5 hover:bg-white/[0.03] transition-colors group cursor-pointer"
+              >
                 <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                   {/* Left: content */}
                   <div className="flex-1 min-w-0">
@@ -222,6 +227,91 @@ export default function StaffDashboard() {
           </div>
         )}
       </div>
+      {selectedTicket && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          onClick={() => setSelectedTicket(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-2xl bg-[#0d1117] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h2 className="text-lg font-bold text-white">
+                {selectedTicket.title}
+              </h2>
+              <button
+                onClick={() => setSelectedTicket(null)}
+                className="text-slate-400 hover:text-white text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-5">
+
+              {/* Image */}
+              {selectedTicket.imageUrl && (
+                <img
+                  src={selectedTicket.imageUrl}
+                  alt="Complaint"
+                  className="w-full h-64 object-cover rounded-xl border border-white/10"
+                />
+              )}
+
+              {/* Description */}
+              <div>
+                <p className="text-xs uppercase text-slate-500 font-bold mb-1">
+                  Description
+                </p>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  {selectedTicket.description}
+                </p>
+              </div>
+
+              {/* Meta Info */}
+              <div className="flex flex-wrap gap-4 text-xs text-slate-400">
+                <span>
+                  📅{" "}
+                  {new Date(selectedTicket.createdAt).toLocaleDateString()}
+                </span>
+                <span>
+                  🆔 #{selectedTicket.id.toString().padStart(4, "0")}
+                </span>
+                <span>
+                  📌 {selectedTicket.status.replace("_", " ")}
+                </span>
+              </div>
+
+              {/* Status Update */}
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1">
+                  Update Status
+                </label>
+
+                <select
+                  value={selectedTicket.status}
+                  onChange={(e) => {
+                    updateStatus(selectedTicket.id, e.target.value)
+                    setSelectedTicket({
+                      ...selectedTicket,
+                      status: e.target.value
+                    })
+                  }}
+                  className="w-full bg-white/5 border border-white/10 text-sm text-slate-300 rounded-lg px-3 py-2"
+                >
+                  <option value="ASSIGNED">Assigned</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

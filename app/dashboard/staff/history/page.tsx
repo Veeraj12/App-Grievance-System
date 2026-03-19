@@ -14,20 +14,13 @@ export default async function HistoryPage() {
   const userRole = session.user.role;
   const userName = session.user.name || "User";
 
-  let complaints : any= [];
+  let complaints: any = [];
 
-  if (userRole === "USER") {
+  if (userRole === "STAFF") {
     complaints = await prisma.complaint.findMany({
       where: {
         status: "RESOLVED",
-        userId: userId
-      }
-    });
-  } else if (userRole === "STAFF") {
-    complaints = await prisma.complaint.findMany({
-      where: {
-        status: "RESOLVED",
-        userId: userId
+        departmentName: session.user.departmentName
       }
     });
   }
@@ -41,10 +34,11 @@ export default async function HistoryPage() {
       {complaints.length === 0 ? (
         <p className="text-slate-400">No resolved complaints</p>
       ) : (
-        complaints.map((c:any) => (
+        complaints.map((c: any) => (
           <div key={c.id} className="p-4 rounded-xl bg-white/5 border border-white/10">
             <div className="font-semibold text-white">{c.title}</div>
             <div className="text-sm text-slate-400">{c.departmentName}</div>
+            <div className="text-sm text-slate-400">{c.description}</div>
           </div>
         ))
       )}

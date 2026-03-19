@@ -26,27 +26,27 @@ export async function GET() {
   }
 
   const complaints = await prisma.complaint.findMany({
-  where: {
-    departmentName: {
-      equals: staff.department.name,
-      mode: "insensitive"
+    where: {
+      departmentName: {
+        equals: staff.departmentName,
+        mode: "insensitive"
+      },
+      status: {
+        in: ["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED"]
+      }
     },
-    status: {
-      in: ["OPEN","ASSIGNED", "IN_PROGRESS","RESOLVED"]
-    }
-  },
-  orderBy: {
-    createdAt: "desc"
-  },
-  include: {
-    user: {
-      select: {
-        name: true,
-        email: true
+    orderBy: {
+      createdAt: "desc"
+    },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true
+        }
       }
     }
-  }
-})
+  })
 
   return NextResponse.json(complaints)
 

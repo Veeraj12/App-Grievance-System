@@ -28,7 +28,7 @@ export async function GET() {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
           }
         },
         statuses: true
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
     const body = await req.json()
 
-    const { title, description, userId } = body
+    const { title, description, userId, imageUrl } = body
 
     if (!title || !description || !userId) {
       return NextResponse.json(
@@ -69,14 +69,20 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
-
+    if (imageUrl && typeof imageUrl !== "string") {
+      return NextResponse.json(
+        { error: "Invalid image URL" },
+        { status: 400 }
+      )
+    }
     const complaint = await prisma.complaint.create({
       data: {
         title,
         description,
         status: "OPEN",
+        imageUrl, // ✅ ADD THIS
         user: {
-          connect: { id: Number(body.userId) }
+          connect: { id: Number(userId) }
         }
       }
     })
