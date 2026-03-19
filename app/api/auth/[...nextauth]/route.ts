@@ -30,9 +30,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email and password are required");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email }
-        });
+       const user = await prisma.user.findUnique({
+        where: { email },
+        include: {
+          department: true
+        }
+      });
         console.log("Database query completed for email:", user?.email);
 
         if (!user) {
@@ -43,8 +46,6 @@ export const authOptions: NextAuthOptions = {
         console.log("User found, checking password...");
 
         const bcrypt = require("bcrypt")
-
-        bcrypt.hash("123456", 10).then(console.log)
 
         const validPassword = await bcrypt.compare(
           credentials.password,
@@ -62,7 +63,8 @@ export const authOptions: NextAuthOptions = {
           id: String(user.id),
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
+          departmentName: user.department?.name || null // ✅ ADD THIS
         };
       }
     })
@@ -75,16 +77,18 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
 
     async jwt({ token, user }: { token: JWT; user?: any }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
+    if (user) {
+      token.id = user.id;
+      token.role = user.role;
+      token.departmentName = user.departmentName; // ✅ ADD
+    }
+    return token;
+  },
 
     async session({ session, token } : { session: Session; token: JWT }) {
-      session.user.id = token.id;
-      session.user.role = token.role;
+      session.user.id = token.id as number;
+      session.user.role = token.role as string;
+      session.user.departmentName = token.departmentName as string; // ✅ ADD
       return session;
     }
   },

@@ -69,14 +69,14 @@ export default async function Home() {
           Next-Gen Issue Resolution
         </div>
         
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-8 text-white">
-          Resolve Issues <br className="hidden md:block" />
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-8 text-white text-center leading-tight">
+          Resolve Issues{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400">
-            Smarter & Faster
+            Smarter &amp; Faster
           </span>
         </h1>
         
-        <p className="max-w-2xl text-lg md:text-xl text-slate-400 mb-10 leading-relaxed">
+        <p className="max-w-2xl text-lg md:text-xl text-slate-400 mb-10 leading-relaxed text-center px-2">
           A revolutionary platform that modernizes how grievances are filed, tracked, and resolved. Utilizing smart workflows and real-time updates to ensure complete transparency.
         </p>
         

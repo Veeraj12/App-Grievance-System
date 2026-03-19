@@ -39,6 +39,9 @@ model User {
   department   Department? @relation(fields: [departmentId], references: [id])
 
   complaints   Complaint[]
+
+  resetToken       String?
+  resetTokenExpire DateTime?
 }
 
 model Department {

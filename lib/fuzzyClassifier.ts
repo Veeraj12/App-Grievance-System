@@ -4,7 +4,7 @@ const DEPARTMENT_KEYWORDS: Record<string, string[]> = {
   "Road": ["road", "pothole", "traffic", "bridge", "highway", "street", "signal"],
   "Health": ["hospital", "doctor", "medical", "clinic", "ambulance", "medicine"],
   "Education": ["school", "college", "exam", "teacher", "student", "university", "studies","education"],
-  "Police": ["police", "crime", "theft", "robbery", "fir", "harassment"],
+  "Police": ["police", "crime", "theft", "robbery", "fir", "harassment","stolen"],
   "Revenue": ["land", "property", "tax", "registration", "certificate"],
   "Sanitation": ["garbage", "waste", "cleaning", "sewer", "dustbin", "dirty"],
   "Housing": ["house", "flat", "apartment", "construction", "building"],
